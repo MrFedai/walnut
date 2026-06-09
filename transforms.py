@@ -1,43 +1,51 @@
 import os
+import random
 import torch
+import numpy as np
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
 
-# Klasör Yolları
-data_dir = "dataset/dataset_ready" 
-train_dir = os.path.join(data_dir, 'train')
-val_dir = os.path.join(data_dir, 'val')
-test_dir = os.path.join(data_dir, 'test')
+def set_seed(seed=42):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
 
-# Eğitim verisi için dönüşümler
-train_transforms = transforms.Compose([
-    transforms.Resize((224, 224)),
-    transforms.RandomHorizontalFlip(p=0.5),
-    transforms.RandomVerticalFlip(p=0.5),
-    transforms.RandomRotation(degrees=15),
-    transforms.ColorJitter(brightness=0.1, contrast=0.1),
-    transforms.ToTensor(),
-    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-])
+def get_data_loaders(data_dir="dataset/dataset_ready", batch_size=32, num_workers=2):
+    train_dir = os.path.join(data_dir, 'train')
+    val_dir = os.path.join(data_dir, 'val')
+    test_dir = os.path.join(data_dir, 'test')
 
-# Doğrulama ve Test verisi için dönüşümler (Sadece boyutlandırma ve normalize)
-val_test_transforms = transforms.Compose([
-    transforms.Resize((224, 224)),
-    transforms.ToTensor(),
-    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-])
+    # Ortak Normalizasyon Değerleri
+    norm = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 
-train_dataset = datasets.ImageFolder(train_dir, transform=train_transforms)
-val_dataset = datasets.ImageFolder(val_dir, transform=val_test_transforms)
-test_dataset = datasets.ImageFolder(test_dir, transform=val_test_transforms)
+    train_transform = transforms.Compose([
+        transforms.Resize((224, 224)),
+        transforms.RandomHorizontalFlip(p=0.5),
+        transforms.RandomVerticalFlip(p=0.5),
+        transforms.RandomRotation(degrees=15),
+        transforms.ColorJitter(brightness=0.1, contrast=0.1),
+        transforms.ToTensor(),
+        norm
+    ])
 
-batch_size = 32
+    val_test_transform = transforms.Compose([
+        transforms.Resize((224, 224)),
+        transforms.ToTensor(),
+        norm
+    ])
 
-# num_workers=2 parametresi veri yükleme işlemini paralel çekirdeklere paylaştırıp hızlandırır.
-train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=2)
-val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=2)
-test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=2)
+    # Datasetler
+    train_ds = datasets.ImageFolder(train_dir, transform=train_transform)
+    val_ds = datasets.ImageFolder(val_dir, transform=val_test_transform)
+    test_ds = datasets.ImageFolder(test_dir, transform=val_test_transform)
 
-# Sistem Doğrulaması (Sanity Check)
-print(f"Tespit edilen sınıf sayısı: {len(train_dataset.classes)}")
-print(f"Sınıf isimleri: {train_dataset.classes}")
+    # Loaderlar
+    train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=num_workers)
+    val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_workers=num_workers)
+    test_loader = DataLoader(test_ds, batch_size=batch_size, shuffle=False, num_workers=num_workers)
+
+    return train_loader, val_loader, test_loader, train_ds.classes
