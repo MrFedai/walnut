@@ -1,0 +1,7 @@
+https://www.kaggle.com/datasets/alpertalhakaradenz/walnut-leaf-dataset?resource=download
+
+
+
+#!/bin/bash
+curl -L -o ~/Downloads/walnut-leaf-dataset.zip\
+  https://www.kaggle.com/api/v1/datasets/download/alpertalhakaradenz/walnut-leaf-dataset
