@@ -1,62 +1,20 @@
 import os
-import time
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torchvision import datasets, transforms
-from torch.utils.data import DataLoader
 from torchvision.models import resnet18, ResNet18_Weights
-import random
-import numpy as np
-
-# REPRODUCIBILITY SEED
-seed = 42
-random.seed(seed)
-np.random.seed(seed)
-torch.manual_seed(seed)
-if torch.cuda.is_available():
-    torch.cuda.manual_seed_all(seed)
-    torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False
+from transforms import set_seed, get_data_loaders
 
 def main():
-    # ==========================================
-    # 1. VERİ YÜKLEME VE ÖN İŞLEME (DATA PIPELINE)
-    # ==========================================
-    data_dir = "dataset/dataset_ready" 
-    train_dir = os.path.join(data_dir, 'train')
-    val_dir = os.path.join(data_dir, 'val')
-
-    train_transforms = transforms.Compose([
-        transforms.Resize((224, 224)),
-        transforms.RandomHorizontalFlip(p=0.5),
-        transforms.RandomVerticalFlip(p=0.5),
-        transforms.RandomRotation(degrees=15),
-        transforms.ColorJitter(brightness=0.1, contrast=0.1),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-    ])
-
-    val_test_transforms = transforms.Compose([
-        transforms.Resize((224, 224)),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-    ])
-
-    train_dataset = datasets.ImageFolder(train_dir, transform=train_transforms)
-    val_dataset = datasets.ImageFolder(val_dir, transform=val_test_transforms)
-
-    batch_size = 32
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=2)
-    val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=2)
-
-    print(f"Tespit edilen sınıf sayısı: {len(train_dataset.classes)}")
+    set_seed(42)
+    train_loader, val_loader, _, class_names = get_data_loaders()
+    # ... model ve eğitim kısmı ...
 
     # ==========================================
     # 2. MODEL MİMARİSİ VE OPTİMİZASYON
     # ==========================================
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"Kullanılan cihaz: {device}")
+    print(f"Using Device: {device}")
 
     weights = ResNet18_Weights.IMAGENET1K_V1
     model = resnet18(weights=weights)
@@ -68,7 +26,7 @@ def main():
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=0.001)
 
-    print("Model mimarisi hazır. Eğitim süreci başlıyor...\n")
+    print("Model Architecture Ready. It Is Starting...\n")
 
     # ==========================================
     # 3. EĞİTİM DÖNGÜSÜ (TRAINING LOOP)
@@ -131,11 +89,11 @@ def main():
         if val_epoch_acc > best_acc:
             best_acc = val_epoch_acc
             torch.save(model.state_dict(), 'best_resnet18_walnut.pth')
-            print(">>> Yeni en iyi model diske kaydedildi! (best_resnet18_walnut.pth)")
+            print(">>> The new best model was saved to disc.!(best_resnet18_walnut.pth)")
             
         print()
 
-    print(f'Eğitim Tamamlandı. En İyi Doğrulama Skoru: {best_acc:.4f}')
+    print(f'Training Completed. Best Verification Score: {best_acc:.4f}')
 
 # ==========================================
 # MULTIPROCESSING İÇİN ZORUNLU GİRİŞ NOKTASI
