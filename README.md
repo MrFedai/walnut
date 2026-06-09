@@ -22,7 +22,11 @@ Ensure you have the following installed:
 - Python >= 3.8
 - PyTorch >= 1.10
 - TorchVision >= 0.11
-
+## Git Clone
+```bash
+git clone https://github.com/MrFedai/walnut.git
+cd walnut
+```
 Install dependencies from `requirements.txt`:
 ```bash
 python -m venv env
