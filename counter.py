@@ -21,4 +21,4 @@ for split in splits:
             ])
             print(f"  {cls}: {count}")
             
-    print() # Çıktıların okunabilirliği için boşluk
+    print()

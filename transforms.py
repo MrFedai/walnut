@@ -4,6 +4,17 @@ import torch
 import numpy as np
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
+from PIL import Image, UnidentifiedImageError
+
+def safe_pil_loader(path):
+    try:
+        with open(path, 'rb') as f:
+            img = Image.open(f)
+            return img.convert('RGB')
+    except (UnidentifiedImageError, OSError):
+        print(f"[WRNG] The corrupted or unreadable image was skipped.: {path}")
+        # Alternatif olarak sabit boyutta siyah bir imaj döndürebilirsin
+        return Image.new('RGB', (224, 224))
 
 def set_seed(seed=42):
     random.seed(seed)
@@ -39,9 +50,9 @@ def get_data_loaders(data_dir="dataset/dataset_ready", batch_size=32, num_worker
     ])
 
     # Datasetler
-    train_ds = datasets.ImageFolder(train_dir, transform=train_transform)
-    val_ds = datasets.ImageFolder(val_dir, transform=val_test_transform)
-    test_ds = datasets.ImageFolder(test_dir, transform=val_test_transform)
+    train_ds = datasets.ImageFolder(train_dir, transform=train_transform,loader=safe_pil_loader)
+    val_ds = datasets.ImageFolder(val_dir, transform=val_test_transform,loader=safe_pil_loader)
+    test_ds = datasets.ImageFolder(test_dir, transform=val_test_transform,loader=safe_pil_loader)
 
     # Loaderlar
     train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=num_workers)

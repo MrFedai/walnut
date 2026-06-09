@@ -1,0 +1,21 @@
+IMPORTANT
+
+If you need the COMPLETE project including the dataset, clone the repository (this ensures Git LFS objects and all files are retrieved):
+-------------------------------
+git clone git@github.com:MrFedai/walnut.git
+cd walnut
+git lfs install
+git lfs pull
+--------------------------------
+python -m venv env
+source env/bin/activate  # Linux/macOS
+# for Windows : env\Scripts\activate
+pip install -r requirements.txt
+--------------------------------
+python train.py
+python evaluate.py
+--------------------------------
+
+Warning: this will download large files (may be several GB). If you only need the dataset folder, follow the "Download only dataset" instructions in the README.
+
+https://github.com/MrFedai/walnut

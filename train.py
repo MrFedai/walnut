@@ -4,7 +4,6 @@ import torch.nn as nn
 import torch.optim as optim
 from torchvision.models import resnet18, ResNet18_Weights
 from transforms import set_seed, get_data_loaders
-
 def main():
     set_seed(42)
     train_loader, val_loader, _, class_names = get_data_loaders()
@@ -60,8 +59,8 @@ def main():
             running_loss += loss.item() * inputs.size(0)
             running_corrects += torch.sum(preds == labels.data)
             
-        epoch_loss = running_loss / len(train_dataset)
-        epoch_acc = running_corrects.double() / len(train_dataset)
+        epoch_loss = running_loss / len(train_loader.dataset)
+        epoch_acc = running_corrects.double() / len(train_loader.dataset)
         print(f'Train -> Loss: {epoch_loss:.4f} | Accuracy: {epoch_acc:.4f}')
         
         # --- DOĞRULAMA AŞAMASI ---
@@ -81,8 +80,8 @@ def main():
             val_loss += loss.item() * inputs.size(0)
             val_corrects += torch.sum(preds == labels.data)
             
-        val_epoch_loss = val_loss / len(val_dataset)
-        val_epoch_acc = val_corrects.double() / len(val_dataset)
+        val_epoch_loss = val_loss / len(val_loader.dataset)
+        val_epoch_acc = val_corrects.double() / len(val_loader.dataset)
         print(f'Val   -> Loss: {val_epoch_loss:.4f} | Accuracy: {val_epoch_acc:.4f}')
         
         # En iyi modeli kaydetme
